@@ -1,0 +1,12 @@
+[package]
+name = "day_2"
+version = "0.1.0"
+authors = ["MajorX234 <majorx234@googlemail.com>"]
+edition = "2021"
+
+[[bin]]
+name = "day_2_task_1"
+path = "src/main.rs"
+
+[dependencies]
+day_1 = {path = "../day_1", version = "0.1.0"}
