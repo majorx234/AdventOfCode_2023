@@ -10,3 +10,4 @@ path = "src/main.rs"
 
 [dependencies]
 day_1 = {path = "../day_1", version = "0.1.0"}
+nom = {version = "7.1.1"}
