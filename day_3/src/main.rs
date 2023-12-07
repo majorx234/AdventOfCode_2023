@@ -8,29 +8,63 @@ use nom::{
 };
 use std::io::{self, prelude::*, BufReader};
 
+#[derive(Debug, PartialEq)]
 struct Pos {
     x: i32,
     y: i32,
 }
 
+#[derive(Debug, PartialEq)]
 struct Number {
     id: usize,
     pos: Pos,
     len: i32,
 }
 
+#[derive(Debug, PartialEq)]
 struct Symbol {
     pos: Pos,
 }
 
+#[derive(Debug, PartialEq)]
 struct EngineSchematic {
     symbols: Vec<Symbol>,
     numbers: Vec<Number>,
 }
 
+#[derive(Debug, PartialEq)]
+enum ParseState {
+    None,
+    Numeric,
+}
+
+fn is_symbol(my_char: char) -> bool {
+    if my_char != '.' && !my_char.is_numeric() {
+        return true;
+    }
+    return false;
+}
+
 fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Number>) {
+    let mut state = ParseState::None;
+    let symbols: Vec<Symbol> = Vec::new();
+    let numbers: Vec<Number> = Vec::new();
+    let mut number_len = 0;
+    let new_number = 0;
     for (pos, char) in input.chars().enumerate() {
-        println!("char {} at pos {}", pos, char);
+        if char.is_numeric() {
+            state = ParseState::Numeric;
+            number_len += 1;
+        } else {
+            // none numeric now
+            if state == ParseState::Numeric {
+                state = ParseState::None;
+                // save number
+                // check if symbol
+            } else {
+                todo!()
+            }
+        }
     }
     (Vec::new(), Vec::new())
 }
