@@ -99,12 +99,16 @@ fn main() {
         }
     }
     let mut sum = 0;
+    let mut minimal_cubes_sum = 0;
     for game in games {
         if validate_game(&game) {
             sum += game.game_id;
         }
+        let (min_red, min_green, min_blue) = minimal_cubes(&game);
+        let minimal_cubes_product = min_red * min_green * min_blue;
+        minimal_cubes_sum += minimal_cubes_product;
     }
-    println!("sum: {}", sum);
+    println!("sum: {}, minimal_cubes_sum: {}", sum, minimal_cubes_sum);
 }
 
 fn validate_game(game: &Game) -> bool {
@@ -131,4 +135,30 @@ fn validate_game(game: &Game) -> bool {
         }
     }
     return true;
+}
+
+fn minimal_cubes(game: &Game) -> (u32, u32, u32) {
+    let mut min_red = 0;
+    let mut min_green = 0;
+    let mut min_blue = 0;
+    for round in game.rounds.iter() {
+        for (value, color) in round.sets.iter() {
+            if *color == Color::RED {
+                if *value > min_red {
+                    min_red = *value;
+                }
+            }
+            if *color == Color::GREEN {
+                if *value > min_green {
+                    min_green = *value;
+                }
+            }
+            if *color == Color::BLUE {
+                if *value > min_blue {
+                    min_blue = *value
+                }
+            }
+        }
+    }
+    return (min_red, min_green, min_blue);
 }
