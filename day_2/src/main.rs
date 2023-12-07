@@ -88,11 +88,47 @@ fn parse_game(input: &str) -> IResult<&str, Game> {
 
 fn main() {
     let reader = read_arg_file().unwrap();
+    let mut games: Vec<Game> = Vec::new();
     for line in reader.lines() {
         //println!("line: {}", line.unwrap());
         let line_cpy = (line.unwrap()).clone();
         //println!("line: {}", line_cpy);
-        let game = parse_game(&line_cpy);
-        println!("game: {:?}", game);
+        if let Ok((_, game)) = parse_game(&line_cpy) {
+            games.push(game);
+            // println!("game: {:?}", game);
+        }
     }
+    let mut sum = 0;
+    for game in games {
+        if validate_game(&game) {
+            sum += game.game_id;
+        }
+    }
+    println!("sum: {}", sum);
+}
+
+fn validate_game(game: &Game) -> bool {
+    let max_red = 12;
+    let max_green = 13;
+    let max_blue = 14;
+    for round in game.rounds.iter() {
+        for (value, color) in round.sets.iter() {
+            if *color == Color::RED {
+                if *value > max_red {
+                    return false;
+                }
+            }
+            if *color == Color::GREEN {
+                if *value > max_green {
+                    return false;
+                }
+            }
+            if *color == Color::BLUE {
+                if *value > max_blue {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
