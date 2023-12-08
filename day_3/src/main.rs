@@ -63,11 +63,13 @@ fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Numbe
                 let number = Number {
                     id: number_usize,
                     pos: Pos {
-                        x: pos_x as i32,
+                        x: (pos_x - number_str.len()) as i32,
                         y: lin_number,
                     },
                     len: number_str.len() as i32,
                 };
+                numbers.push(number);
+                number_str.clear();
                 // save number
                 // check if symbol
             }
@@ -87,7 +89,14 @@ fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Numbe
 
 fn main() {
     let reader = read_arg_file().unwrap();
+    let mut symbols: Vec<Symbol> = Vec::new();
+    let mut numbers: Vec<Number> = Vec::new();
+
     for (pos, line) in reader.lines().enumerate() {
-        let (symbosl, numbers) = parse_schematic_line(&line.unwrap(), pos as i32);
+        let (mut symbols_new, mut numbers_new) = parse_schematic_line(&line.unwrap(), pos as i32);
+        symbols.append(&mut symbols_new);
+        numbers.append(&mut numbers_new);
     }
+    let engine_schematic = EngineSchematic { symbols, numbers };
+    println!("{:?}", engine_schematic);
 }
