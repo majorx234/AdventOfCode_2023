@@ -38,40 +38,56 @@ enum ParseState {
     Numeric,
 }
 
-fn is_symbol(my_char: char) -> bool {
-    if my_char != '.' && !my_char.is_numeric() {
+fn is_symbol(my_char: &char) -> bool {
+    if *my_char != '.' && !my_char.is_numeric() {
         return true;
     }
-    return false;
+    false
 }
 
 fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Number>) {
     let mut state = ParseState::None;
-    let symbols: Vec<Symbol> = Vec::new();
-    let numbers: Vec<Number> = Vec::new();
-    let mut number_len = 0;
+    let mut symbols: Vec<Symbol> = Vec::new();
+    let mut numbers: Vec<Number> = Vec::new();
+    let mut number_str: Vec<char> = Vec::new();
     let new_number = 0;
-    for (pos, char) in input.chars().enumerate() {
-        if char.is_numeric() {
+    for (pos_x, read_char) in input.chars().enumerate() {
+        if read_char.is_numeric() {
             state = ParseState::Numeric;
-            number_len += 1;
+            number_str.push(read_char);
         } else {
             // none numeric now
             if state == ParseState::Numeric {
-                state = ParseState::None;
+                let number_string = number_str.iter().collect::<String>();
+                let number_usize = number_string.parse::<usize>().unwrap();
+                let number = Number {
+                    id: number_usize,
+                    pos: Pos {
+                        x: pos_x as i32,
+                        y: lin_number,
+                    },
+                    len: number_str.len() as i32,
+                };
                 // save number
                 // check if symbol
-            } else {
-                todo!()
+            }
+            state = ParseState::None;
+            if is_symbol(&read_char) {
+                let pos = Pos {
+                    x: pos_x as i32,
+                    y: lin_number,
+                };
+                let symbol = Symbol { pos };
+                symbols.push(symbol);
             }
         }
     }
-    (Vec::new(), Vec::new())
+    (symbols, numbers)
 }
 
 fn main() {
     let reader = read_arg_file().unwrap();
     for (pos, line) in reader.lines().enumerate() {
-        parse_schematic_line(&line.unwrap(), pos as i32);
+        let (symbosl, numbers) = parse_schematic_line(&line.unwrap(), pos as i32);
     }
 }
