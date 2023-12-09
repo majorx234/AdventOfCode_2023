@@ -10,26 +10,27 @@ use std::io::{self, prelude::*, BufReader};
 
 #[derive(Debug, PartialEq)]
 struct Pos {
-    x: i32,
-    y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 #[derive(Debug, PartialEq)]
 struct Number {
-    id: usize,
-    pos: Pos,
-    len: i32,
+    pub id: usize,
+    pub value: usize,
+    pub pos: Pos,
+    pub len: i32,
 }
 
 #[derive(Debug, PartialEq)]
 struct Symbol {
-    pos: Pos,
+    pub pos: Pos,
 }
 
 #[derive(Debug, PartialEq)]
 struct EngineSchematic {
-    symbols: Vec<Symbol>,
-    numbers: Vec<Number>,
+    pub symbols: Vec<Symbol>,
+    pub numbers: Vec<Number>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -51,6 +52,7 @@ fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Numbe
     let mut numbers: Vec<Number> = Vec::new();
     let mut number_str: Vec<char> = Vec::new();
     let new_number = 0;
+    let mut idx = 0;
     for (pos_x, read_char) in input.chars().enumerate() {
         if read_char.is_numeric() {
             state = ParseState::Numeric;
@@ -61,7 +63,8 @@ fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Numbe
                 let number_string = number_str.iter().collect::<String>();
                 let number_usize = number_string.parse::<usize>().unwrap();
                 let number = Number {
-                    id: number_usize,
+                    id: idx,
+                    value: number_usize,
                     pos: Pos {
                         x: (pos_x - number_str.len()) as i32,
                         y: lin_number,
@@ -69,6 +72,7 @@ fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Numbe
                     len: number_str.len() as i32,
                 };
                 numbers.push(number);
+                idx += 1;
                 number_str.clear();
                 // save number
                 // check if symbol
