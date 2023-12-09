@@ -104,3 +104,21 @@ fn main() {
     let engine_schematic = EngineSchematic { symbols, numbers };
     println!("{:?}", engine_schematic);
 }
+
+fn is_adjacent(symbol: Symbol, number: Number) -> bool {
+    if !(symbol.pos.y == number.pos.y
+        || symbol.pos.y == number.pos.y - 1
+        || symbol.pos.y == number.pos.y + 1)
+    {
+        return false;
+    }
+    for offset in 0..number.len {
+        if (symbol.pos.x == number.pos.x
+            || symbol.pos.x == number.pos.x - 1
+            || symbol.pos.x == number.pos.x + 1)
+        {
+            return true;
+        }
+    }
+    false
+}
