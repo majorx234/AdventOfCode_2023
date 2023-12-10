@@ -8,13 +8,13 @@ use nom::{
 };
 use std::io::{self, prelude::*, BufReader};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 struct Pos {
     pub x: i32,
     pub y: i32,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 struct Number {
     pub id: usize,
     pub value: usize,
@@ -22,12 +22,12 @@ struct Number {
     pub len: i32,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 struct Symbol {
     pub pos: Pos,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 struct EngineSchematic {
     pub symbols: Vec<Symbol>,
     pub numbers: Vec<Number>,
@@ -103,9 +103,11 @@ fn main() {
     }
     let engine_schematic = EngineSchematic { symbols, numbers };
     println!("{:?}", engine_schematic);
+    let adjacent_numbers = find_adjacent_numbers(engine_schematic);
+    println!("{:?}", adjacent_numbers);
 }
 
-fn is_adjacent(symbol: Symbol, number: Number) -> bool {
+fn is_adjacent(symbol: &Symbol, number: &Number) -> bool {
     if !(symbol.pos.y == number.pos.y
         || symbol.pos.y == number.pos.y - 1
         || symbol.pos.y == number.pos.y + 1)
@@ -113,12 +115,64 @@ fn is_adjacent(symbol: Symbol, number: Number) -> bool {
         return false;
     }
     for offset in 0..number.len {
-        if (symbol.pos.x == number.pos.x
+        if symbol.pos.x == number.pos.x
             || symbol.pos.x == number.pos.x - 1
-            || symbol.pos.x == number.pos.x + 1)
+            || symbol.pos.x == number.pos.x + 1
         {
             return true;
         }
     }
     false
+}
+
+fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
+    let numbers = engine_schematic.numbers;
+    let symbols = engine_schematic.symbols;
+    let mut idx_row: i32 = symbols[0].pos.y;
+    let row_max = symbols[symbols.len() - 1].pos.y + 1;
+    let mut numbers_row_min_idx = idx_row - 1;
+    let mut numbers_real_idx = 0;
+    let mut symbol_real_idx = 0;
+    let mut adjacent_numbers: Vec<Number> = Vec::new();
+
+    loop {
+        if idx_row > row_max {
+            break;
+        }
+        if symbol_real_idx >= symbols.len() {
+            break;
+        }
+        let my_symbol = symbols[symbol_real_idx].clone();
+        symbol_real_idx += 1;
+        let mut numbers_to_check: Vec<Number> = Vec::new();
+        let mut number_work_idx = numbers_real_idx;
+        loop {
+            if number_work_idx >= numbers.len() {
+                break;
+            }
+            let number_to_check = numbers[number_work_idx].clone();
+            if number_to_check.pos.y > idx_row + 1 {
+                break;
+            }
+            numbers_to_check.push(number_to_check.clone());
+            number_work_idx += 1;
+        }
+        for number_to_check in numbers_to_check {
+            if is_adjacent(&my_symbol, &number_to_check) {
+                adjacent_numbers.push(number_to_check.clone());
+            }
+        }
+        idx_row = my_symbol.pos.y;
+
+        loop {
+            if numbers_real_idx >= numbers.len() {
+                break;
+            }
+            if numbers[numbers_real_idx].pos.y >= idx_row - 1 {
+                break;
+            }
+            numbers_real_idx += 1;
+        }
+    }
+    return adjacent_numbers;
 }
