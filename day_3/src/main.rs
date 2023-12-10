@@ -6,6 +6,7 @@ use nom::{
     multi::{count, separated_list1},
     IResult,
 };
+use std::collections::HashMap;
 use std::io::{self, prelude::*, BufReader};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -46,13 +47,16 @@ fn is_symbol(my_char: &char) -> bool {
     false
 }
 
-fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Number>) {
+fn parse_schematic_line(
+    input: &str,
+    lin_number: i32,
+    idx: &mut usize,
+) -> (Vec<Symbol>, Vec<Number>) {
     let mut state = ParseState::None;
     let mut symbols: Vec<Symbol> = Vec::new();
     let mut numbers: Vec<Number> = Vec::new();
     let mut number_str: Vec<char> = Vec::new();
     let new_number = 0;
-    let mut idx = 0;
     for (pos_x, read_char) in input.chars().enumerate() {
         if read_char.is_numeric() {
             state = ParseState::Numeric;
@@ -63,7 +67,7 @@ fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Numbe
                 let number_string = number_str.iter().collect::<String>();
                 let number_usize = number_string.parse::<usize>().unwrap();
                 let number = Number {
-                    id: idx,
+                    id: *idx,
                     value: number_usize,
                     pos: Pos {
                         x: (pos_x - number_str.len()) as i32,
@@ -72,7 +76,7 @@ fn parse_schematic_line(input: &str, lin_number: i32) -> (Vec<Symbol>, Vec<Numbe
                     len: number_str.len() as i32,
                 };
                 numbers.push(number);
-                idx += 1;
+                *idx += 1;
                 number_str.clear();
                 // save number
                 // check if symbol
@@ -95,16 +99,29 @@ fn main() {
     let reader = read_arg_file().unwrap();
     let mut symbols: Vec<Symbol> = Vec::new();
     let mut numbers: Vec<Number> = Vec::new();
+    let mut number_idx = 0;
 
     for (pos, line) in reader.lines().enumerate() {
-        let (mut symbols_new, mut numbers_new) = parse_schematic_line(&line.unwrap(), pos as i32);
+        let (mut symbols_new, mut numbers_new) =
+            parse_schematic_line(&line.unwrap(), pos as i32, &mut number_idx);
         symbols.append(&mut symbols_new);
         numbers.append(&mut numbers_new);
     }
     let engine_schematic = EngineSchematic { symbols, numbers };
-    println!("{:?}", engine_schematic);
     let adjacent_numbers = find_adjacent_numbers(engine_schematic);
-    println!("{:?}", adjacent_numbers);
+    // transfer to Hashmap to eliminate multiple entries for same number
+    //    let mut unique_adjacent_numbers = HashMap::new();
+    let mut sum_of_numbers = 0;
+    for number in adjacent_numbers {
+        sum_of_numbers += number.value;
+
+        //        unique_adjacent_numbers.insert(number.id, number);
+    }
+
+    //    for (_, number) in unique_adjacent_numbers {
+    //        sum_of_numbers += number.value;
+    //    }
+    println!("sum of numbers: {}", sum_of_numbers);
 }
 
 fn is_adjacent(symbol: &Symbol, number: &Number) -> bool {
@@ -139,9 +156,6 @@ fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
         if idx_row > row_max {
             break;
         }
-        if symbol_real_idx >= symbols.len() {
-            break;
-        }
         let my_symbol = symbols[symbol_real_idx].clone();
         symbol_real_idx += 1;
         let mut numbers_to_check: Vec<Number> = Vec::new();
@@ -157,13 +171,21 @@ fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
             numbers_to_check.push(number_to_check.clone());
             number_work_idx += 1;
         }
+        println!(
+            "debug: {:?},\nnumbers to check: {:?},\n idx_row{:?}",
+            my_symbol, numbers_to_check, idx_row
+        );
         for number_to_check in numbers_to_check {
             if is_adjacent(&my_symbol, &number_to_check) {
                 adjacent_numbers.push(number_to_check.clone());
             }
         }
-        idx_row = my_symbol.pos.y;
+        println!("adjacent numbers: {:?}", adjacent_numbers);
+        if symbol_real_idx >= symbols.len() {
+            break;
+        }
 
+        idx_row = symbols[symbol_real_idx].pos.y;
         loop {
             if numbers_real_idx >= numbers.len() {
                 break;
@@ -172,6 +194,9 @@ fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
                 break;
             }
             numbers_real_idx += 1;
+        }
+        if numbers_real_idx >= numbers.len() {
+            break;
         }
     }
     return adjacent_numbers;
