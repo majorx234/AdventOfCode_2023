@@ -26,6 +26,7 @@ struct Number {
 #[derive(Debug, Clone, PartialEq)]
 struct Symbol {
     pub pos: Pos,
+    pub is_star: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -85,11 +86,12 @@ fn parse_schematic_line(
             }
             state = ParseState::None;
             if is_symbol(&read_char) {
+                let is_star = if read_char == '*' { true } else { false };
                 let pos = Pos {
                     x: pos_x as i32,
                     y: lin_number,
                 };
-                let symbol = Symbol { pos };
+                let symbol = Symbol { is_star, pos };
                 symbols.push(symbol);
             }
         }
@@ -125,7 +127,7 @@ fn main() {
         numbers.append(&mut numbers_new);
     }
     let engine_schematic = EngineSchematic { symbols, numbers };
-    let adjacent_numbers = find_adjacent_numbers(engine_schematic);
+    let (adjacent_numbers, gear_ratios) = find_adjacent_numbers(engine_schematic);
     // transfer to Hashmap to eliminate multiple entries for same number
     let mut unique_adjacent_numbers = HashMap::new();
     let mut sum_of_numbers = 0;
@@ -143,6 +145,12 @@ fn main() {
         "sum of numbers: {},\n unique: {}",
         sum_of_numbers, sum_of_unique_numbers
     );
+
+    let mut sum_gear_ratio = 0;
+    for gear_ratio in gear_ratios {
+        sum_gear_ratio += gear_ratio;
+    }
+    println!("sum of gear_ratios: {}", sum_gear_ratio);
 }
 
 fn is_adjacent(symbol: &Symbol, number: &Number) -> bool {
@@ -163,7 +171,7 @@ fn is_adjacent(symbol: &Symbol, number: &Number) -> bool {
     false
 }
 
-fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
+fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> (Vec<Number>, Vec<usize>) {
     let numbers = engine_schematic.numbers;
     let symbols = engine_schematic.symbols;
     let mut idx_row: i32 = symbols[0].pos.y;
@@ -172,12 +180,14 @@ fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
     let mut numbers_real_idx = 0;
     let mut symbol_real_idx = 0;
     let mut adjacent_numbers: Vec<Number> = Vec::new();
+    let mut gear_ratios: Vec<usize> = Vec::new();
 
     loop {
         if idx_row > row_max {
             break;
         }
         let my_symbol = symbols[symbol_real_idx].clone();
+        let mut star_adjacent_numbers: Vec<Number> = Vec::new();
         symbol_real_idx += 1;
         let mut numbers_to_check: Vec<Number> = Vec::new();
         let mut number_work_idx = numbers_real_idx;
@@ -199,7 +209,14 @@ fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
         for number_to_check in numbers_to_check {
             if is_adjacent(&my_symbol, &number_to_check) {
                 adjacent_numbers.push(number_to_check.clone());
+                if my_symbol.is_star {
+                    star_adjacent_numbers.push(number_to_check.clone());
+                }
             }
+        }
+        if star_adjacent_numbers.len() == 2 {
+            let gear_ratio = star_adjacent_numbers[0].value * star_adjacent_numbers[1].value;
+            gear_ratios.push(gear_ratio);
         }
         for number in adjacent_numbers.iter() {
             print!("{} ", number.value);
@@ -223,5 +240,6 @@ fn find_adjacent_numbers(engine_schematic: EngineSchematic) -> Vec<Number> {
             break;
         }
     }
-    return adjacent_numbers;
+    println!("gear_ratios: {:?}", gear_ratios);
+    (adjacent_numbers, gear_ratios)
 }
