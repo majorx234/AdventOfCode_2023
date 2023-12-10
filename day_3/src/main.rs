@@ -115,9 +115,9 @@ fn is_adjacent(symbol: &Symbol, number: &Number) -> bool {
         return false;
     }
     for offset in 0..number.len {
-        if symbol.pos.x == number.pos.x
-            || symbol.pos.x == number.pos.x - 1
-            || symbol.pos.x == number.pos.x + 1
+        if symbol.pos.x == number.pos.x + offset
+            || symbol.pos.x == number.pos.x + offset - 1
+            || symbol.pos.x == number.pos.x + offset + 1
         {
             return true;
         }
