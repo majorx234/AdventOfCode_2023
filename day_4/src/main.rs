@@ -14,11 +14,13 @@ fn parse_number(input: &str) -> IResult<&str, Vec<u32>> {
 }
 
 fn parse_card(input: &str) -> IResult<&str, (u32, Vec<u32>, Vec<u32>)> {
-    let (input, _) = tag("Card ")(input)?;
+    let (input, _) = tag("Card")(input)?;
+    let (input, _) = many1(tag(" "))(input)?;
     let (input, card_id) = complete::u32(input)?;
     let (input, _) = tag(":")(input)?;
     let (input, _) = many1(tag(" "))(input)?;
-    let (input, (winner_numbers, _)) = many_till(parse_number, tag(" | "))(input)?;
+    let (input, (winner_numbers, _)) = many_till(parse_number, tag(" |"))(input)?;
+    let (input, _) = many1(tag(" "))(input)?;
     let (input, your_numbers) = separated_list1(many1(tag(" ")), complete::u32)(input)?;
     let vec_winner_numbers = winner_numbers[0].clone();
     Ok((input, (card_id, vec_winner_numbers, your_numbers)))
