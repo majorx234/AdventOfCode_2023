@@ -6,6 +6,7 @@ use nom::{
     multi::{count, many1, many_till, separated_list1},
     IResult,
 };
+use std::collections::HashMap;
 use std::io::{self, prelude::*, BufReader};
 
 fn parse_number(input: &str) -> IResult<&str, Vec<u32>> {
@@ -36,4 +37,34 @@ fn main() {
         }
     }
     println!("cards: {:?}", cards);
+    let fold_number_in_map_fct = |mut map: HashMap<u32, bool>, value: &u32| -> HashMap<u32, bool> {
+        map.insert(*value, true);
+        map
+    };
+    let fold_check_winning_numbers_fct =
+        |(mut exp, map): (u32, HashMap<u32, bool>), value: &u32| -> (u32, HashMap<u32, bool>) {
+            if map.contains_key(value) {
+                exp += 1;
+            }
+            (exp, map)
+        };
+    let mut task1_sum = 0;
+    for card in cards {
+        let (card_id, winner_numbers, your_numbers) = card;
+        let winner_map: HashMap<u32, bool> = HashMap::new();
+        let winner_map = winner_numbers
+            .iter()
+            .fold(winner_map, fold_number_in_map_fct);
+        let mut amount_winners = 0;
+        let (exp, _) = your_numbers
+            .iter()
+            .fold((amount_winners, winner_map), fold_check_winning_numbers_fct);
+        let mut card_value = 0;
+        if exp != 0 {
+            card_value = 2_u32.pow(exp - 1);
+        }
+        println!("card_id:{} exp: {} value: {}", card_id, exp, card_value);
+        task1_sum += card_value;
+    }
+    println!("task1_sum: {}", task1_sum);
 }
