@@ -32,6 +32,19 @@ fn parse_map(input: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
     Ok((input, Vec::new()))
 }
 
+fn parse_seeds_to_soil_map(input: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
+    let (input, _) = tag("seeds-to-soil map")(input)?;
+    let (input, _) = tag(":\n ")(input)?;
+    let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
+    let (input, _) = many1(tag("\n"))(input)?;
+    Ok((input, Vec::new()))
+}
+
 fn main() {
-    let reader = read_arg_file().unwrap();
+    let mut reader = read_arg_file().unwrap();
+    let mut input = String::new();
+    if let Ok(string_size) = reader.read_to_string(&mut input) {
+        let (input, seeds) = parse_seeds(&input).unwrap();
+        println!("seeds: {:?}", seeds);
+    }
 }
