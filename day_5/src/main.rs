@@ -88,6 +88,26 @@ fn parse_humidity_to_location_map(input: &str) -> IResult<&str, Vec<(u32, u32, u
     Ok((input, map))
 }
 
+fn follow_mapping_chain(seeds: Vec<u32>, mappings: Vec<Vec<(u32, u32, u32)>>) {
+    let mut mapped_seeds = seeds.clone();
+    let mut next_mapped_seeds = Vec::new();
+
+    for maps in mappings.iter() {
+        for seed in mapped_seeds.iter_mut() {
+            for (dest_start, src_start, range) in maps.iter() {
+                if *seed > *dest_start && *seed < *dest_start + *range {
+                    next_mapped_seeds.push(*seed + *dest_start - src_start);
+                }
+            }
+        }
+        println!("mapped_seeds: {:?}", mapped_seeds);
+
+        mapped_seeds.clear();
+        mapped_seeds.append(&mut next_mapped_seeds);
+    }
+    println!("{:?}", mapped_seeds);
+}
+
 fn main() {
     let mut reader = read_arg_file().unwrap();
     let mut input = String::new();
@@ -101,6 +121,7 @@ fn main() {
         let (input, temperature_to_humidity_map) =
             parse_temperature_to_humidity_map(input).unwrap();
         let (input, humidity_to_location_map) = parse_humidity_to_location_map(input).unwrap();
+        println!("{:?}", seeds);
         println!("{:?}", seeds_to_soil_map);
         println!("{:?}", soil_to_fertilizer_map);
         println!("{:?}", fertilizer_to_water_map);
@@ -108,5 +129,16 @@ fn main() {
         println!("{:?}", light_to_temperature_map);
         println!("{:?}", temperature_to_humidity_map);
         println!("{:?}", humidity_to_location_map);
+
+        let mappings = vec![
+            seeds_to_soil_map,
+            soil_to_fertilizer_map,
+            fertilizer_to_water_map,
+            water_to_light_map,
+            light_to_temperature_map,
+            temperature_to_humidity_map,
+            humidity_to_location_map,
+        ];
+        follow_mapping_chain(seeds, mappings);
     }
 }
