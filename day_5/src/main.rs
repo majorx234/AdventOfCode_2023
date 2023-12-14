@@ -8,23 +8,25 @@ use nom::{
 };
 use std::io::{self, prelude::*, BufReader};
 
-fn parse_seeds(input: &str) -> IResult<&str, Vec<i32>> {
+fn parse_seeds(input: &str) -> IResult<&str, Vec<i64>> {
     let (input, _) = tag("seeds: ")(input)?;
-    let (input, seeds) = separated_list1(many1(tag(" ")), complete::i32)(input)?;
+    println!("input: {}", input);
+    let (input, seeds) = separated_list1(many1(tag(" ")), complete::i64)(input)?;
     let (input, _) = many1(tag("\n"))(input)?;
+    let seeds = seeds.iter().map(|x| *x as i64).collect::<Vec<i64>>();
     Ok((input, seeds))
 }
 
-fn parse_3tuple(input: &str) -> IResult<&str, (i32, i32, i32)> {
-    let (input, first) = complete::i32(input)?;
+fn parse_3tuple(input: &str) -> IResult<&str, (i64, i64, i64)> {
+    let (input, first) = complete::i64(input)?;
     let (input, _) = many1(tag(" "))(input)?;
-    let (input, second) = complete::i32(input)?;
+    let (input, second) = complete::i64(input)?;
     let (input, _) = many1(tag(" "))(input)?;
-    let (input, third) = complete::i32(input)?;
+    let (input, third) = complete::i64(input)?;
     Ok((input, (first, second, third)))
 }
 
-fn parse_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("map_name")(input)?;
     let (input, _) = tag(":\n ")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -32,7 +34,7 @@ fn parse_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
     Ok((input, Vec::new()))
 }
 
-fn parse_seeds_to_soil_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_seeds_to_soil_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("seed-to-soil map")(input)?;
     let (input, _) = tag(":\n")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -40,7 +42,7 @@ fn parse_seeds_to_soil_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
     Ok((input, map))
 }
 
-fn parse_soil_to_fertilizer_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_soil_to_fertilizer_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("soil-to-fertilizer map")(input)?;
     let (input, _) = tag(":\n")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -48,7 +50,7 @@ fn parse_soil_to_fertilizer_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32
     Ok((input, map))
 }
 
-fn parse_fertilizer_to_water_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_fertilizer_to_water_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("fertilizer-to-water map")(input)?;
     let (input, _) = tag(":\n")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -56,7 +58,7 @@ fn parse_fertilizer_to_water_map(input: &str) -> IResult<&str, Vec<(i32, i32, i3
     Ok((input, map))
 }
 
-fn parse_water_to_light_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_water_to_light_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("water-to-light map")(input)?;
     let (input, _) = tag(":\n")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -64,7 +66,7 @@ fn parse_water_to_light_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> 
     Ok((input, map))
 }
 
-fn parse_light_to_temperature_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_light_to_temperature_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("light-to-temperature map")(input)?;
     let (input, _) = tag(":\n")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -72,7 +74,7 @@ fn parse_light_to_temperature_map(input: &str) -> IResult<&str, Vec<(i32, i32, i
     Ok((input, map))
 }
 
-fn parse_temperature_to_humidity_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_temperature_to_humidity_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("temperature-to-humidity map")(input)?;
     let (input, _) = tag(":\n")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -80,7 +82,7 @@ fn parse_temperature_to_humidity_map(input: &str) -> IResult<&str, Vec<(i32, i32
     Ok((input, map))
 }
 
-fn parse_humidity_to_location_map(input: &str) -> IResult<&str, Vec<(i32, i32, i32)>> {
+fn parse_humidity_to_location_map(input: &str) -> IResult<&str, Vec<(i64, i64, i64)>> {
     let (input, _) = tag("humidity-to-location map")(input)?;
     let (input, _) = tag(":\n")(input)?;
     let (input, map) = separated_list1(tag("\n"), parse_3tuple)(input)?;
@@ -88,7 +90,7 @@ fn parse_humidity_to_location_map(input: &str) -> IResult<&str, Vec<(i32, i32, i
     Ok((input, map))
 }
 
-fn follow_mapping_chain(seeds: Vec<i32>, mappings: Vec<Vec<(i32, i32, i32)>>) {
+fn follow_mapping_chain(seeds: Vec<i64>, mappings: Vec<Vec<(i64, i64, i64)>>) {
     let mut mapped_seeds = seeds.clone();
     let mut next_mapped_seeds = Vec::new();
 
@@ -113,7 +115,9 @@ fn follow_mapping_chain(seeds: Vec<i32>, mappings: Vec<Vec<(i32, i32, i32)>>) {
         mapped_seeds.clear();
         mapped_seeds.append(&mut next_mapped_seeds);
     }
-    println!("end:{:?}", mapped_seeds);
+    mapped_seeds.sort();
+    let min = mapped_seeds[0];
+    println!("end:{:?}", min);
 }
 
 fn main() {
